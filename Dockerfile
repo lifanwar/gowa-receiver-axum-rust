@@ -9,11 +9,13 @@ ARG APP_BIN=gowa-webhook-api
 COPY Cargo.toml Cargo.lock ./
 
 RUN mkdir src \
-    && echo "fn main() {}" > src/main.rs \
-    && --mount=type=cache,target=/usr/local/cargo/registry \
-       --mount=type=cache,target=/app/target \
-       cargo build --release --bin ${APP_BIN} \
-    && rm -rf src
+    && echo "fn main() {}" > src/main.rs
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --release --bin ${APP_BIN}
+
+RUN rm -rf src
 
 COPY src ./src
 
