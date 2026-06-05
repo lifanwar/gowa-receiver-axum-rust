@@ -16,8 +16,8 @@ use axum::{
 };
 use serde_json::{json, Map, Value};
 use tokio::net::TcpListener;
-use tower_http::trace::TraceLayer;
-use tracing::{info};
+use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
+use tracing::{info, Level};
 
 use normalizer::{build_event_id, normalize_gowa_payload, safe_key};
 use redis_pubsub::RedisPubSub;
@@ -68,7 +68,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/health", get(health_check))
         .route("/webhooks/gowa", post(receive_gowa_webhook))
         .with_state(state)
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                .on_response(DefaultOnResponse::new().level(Level::INFO)),
+        )
         .layer(middleware::from_fn(drop_unknown_routes));
 
     let listener = TcpListener::bind("0.0.0.0:8000").await?;
