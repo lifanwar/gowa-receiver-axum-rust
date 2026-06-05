@@ -3,9 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        APP_BIN: gowa-webhook-api-rust
-    image: gowa-webhook-api:local
     container_name: gowa-webhook-api
     env_file:
       - .env

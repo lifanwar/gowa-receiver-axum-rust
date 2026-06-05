@@ -1,35 +1,19 @@
-# syntax=docker/dockerfile:1.7
-
-FROM rust:1-slim-bookworm AS builder
+FROM rust:1.88-alpine AS builder
 
 WORKDIR /app
-
-ARG APP_BIN=gowa-webhook-api
 
 COPY Cargo.toml Cargo.lock ./
-
-RUN mkdir src \
-    && echo "fn main() {}" > src/main.rs
-
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/app/target \
-    cargo build --release --bin ${APP_BIN}
-
-RUN rm -rf src
-
 COPY src ./src
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/app/target \
-    cargo build --release --bin ${APP_BIN} \
-    && cp target/release/${APP_BIN} /app/server
+RUN cargo build --release --bin gowa-webhook-api
 
-FROM debian:bookworm-slim AS runtime
 
-WORKDIR /app
+FROM scratch
 
-COPY --from=builder /app/server /app/server
+COPY --from=builder /app/target/release/gowa-webhook-api /gowa-webhook-api
+
+USER 10001:10001
 
 EXPOSE 8000
 
-CMD ["/app/server"]
+ENTRYPOINT ["/gowa-webhook-api"]
