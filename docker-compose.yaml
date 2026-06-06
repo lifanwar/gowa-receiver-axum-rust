@@ -9,3 +9,6 @@ services:
     expose:
       - "8000"
     restart: unless-stopped
+    mem_limit: 16m
+    memswap_limit: 16m
+    cpus: "0.05"
